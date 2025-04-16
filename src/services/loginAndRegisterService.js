@@ -2,25 +2,32 @@ import { getDB } from '@/utils/dbService'
 
 // 注册功能
 export const registerUser = async (user) => {
-    const db = await getDB()
-    const tx = db.transaction('users', 'readonly')
-    const store = tx.objectStore('users')
-    const index = store.index('email')
+    const db = await getDB();
+    const tx = db.transaction('users', 'readwrite');
+    const store = tx.objectStore('users');
+    const index = store.index('email'); // 使用 email 索引
 
-    // 检查邮箱是否已注册
-    const existingUser = await index.get(user.email)
+    try {
+        // 检查用户是否已注册
+        const existingUser = await index.get(user.email);
+        console.log('existingUser', existingUser)
+        if (existingUser) {
+            throw new Error('该邮箱已被注册');
+        }
 
-    if (existingUser) {
-        throw new Error('该邮箱已被注册')
+        // 注册新用户
+        const addTx = db.transaction('users', 'readwrite');
+        const addStore = addTx.objectStore('users');
+        await addStore.add(user);  // 添加新用户
+
+        await addTx.complete; // 确保事务完成
+    } catch (error) {
+        console.error('注册失败:', error);
+        throw error;
     }
 
-    // 没有重复的用户，继续注册
-    const addTx = db.transaction('users', 'readwrite')
-    const addStore = addTx.objectStore('users')
-    await addStore.add(user)
-
-    return user
-}
+    return user;
+};
 
 // 登录功能
 export const loginUser = async (email, password) => {

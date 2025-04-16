@@ -39,6 +39,9 @@ import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
 import { loginUser } from "@/services/loginAndRegisterService";
+import { useUserStore } from "@/stores/user";
+
+const userStore = useUserStore();
 
 const formRef = ref(null);
 const form = ref({
@@ -74,14 +77,16 @@ const handleLogin = async () => {
         const user = await loginUser(email, password);
         // 登录成功后存储用户信息
         localStorage.setItem("user", JSON.stringify(user));
+        // 更新 pinia user store
+        userStore.setUser(user);
 
         ElMessage.success("登录成功！");
 
         // 跳转到个人中心（根据角色跳转）
-        if (user.email === "admin@gmail.com") {
-            router.push("/admin-dashboard"); // 管理员路由
+        if (user.role === "admin") {
+            router.push("/admin/post-job"); // 管理员路由
         } else {
-            router.push("/user-dashboard"); // 普通用户路由
+            router.push("/user/resume"); // 普通用户路由
         }
     } catch (error) {
         ElMessage.error(error.message);

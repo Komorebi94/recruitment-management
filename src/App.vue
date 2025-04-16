@@ -9,12 +9,12 @@
                 >
                 <el-dropdown v-else>
                     <el-button type="primary">
-                        个人中心 <el-icon><arrow-down /></el-icon>
+                        {{ user.username }} <el-icon><arrow-down /></el-icon>
                     </el-button>
                     <template #dropdown>
                         <el-dropdown-menu>
-                            <el-dropdown-item @click="goToProfile"
-                                >个人资料</el-dropdown-item
+                            <el-dropdown-item v-if="user.email !== 'admin@gmail.com'" @click="goToProfile"
+                                >个人信息</el-dropdown-item
                             >
                             <el-dropdown-item @click="logout"
                                 >退出登录</el-dropdown-item
@@ -26,7 +26,7 @@
         </el-header>
 
         <!-- 页面内容 -->
-        <el-main class="main-content">
+        <el-main class="app-main">
             <router-view />
         </el-main>
 
@@ -38,22 +38,38 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
-import { useUserStore } from "@/store/user";
+import { ref, onMounted, watch } from "vue";
+import { useUserStore } from "@/stores/user";
 import { useRouter } from "vue-router";
 import { ArrowDown } from "@element-plus/icons-vue";
 
 const userStore = useUserStore();
 const router = useRouter();
-const user = ref(userStore.user);
+const user = ref(userStore.getUser());
+
+// 监听 userStore 中用户信息的变化
+watch(
+    () => userStore.getUser(),
+    (newUser) => {
+        user.value = newUser;
+        console.log("userStore", newUser);
+    }
+);
 
 const goToHome = () => router.push("/");
 const goToLogin = () => router.push("/login");
-const goToProfile = () => router.push("/profile");
+const goToProfile = () => {
+    // 根据判断登录的user是否是管理员，判断跳转到哪个页面
+    if (user.value.email === "admin@gmail.com") {
+        router.push("/admin");
+    } else {
+        router.push("/user/resume");
+    }
+};
 
 const logout = () => {
-    userStore.logout();
-    user.value = null;
+    // 更新 pinia user store
+    userStore.setUser(null);
     router.push("/");
 };
 </script>
@@ -79,8 +95,8 @@ const logout = () => {
     cursor: pointer;
 }
 
-.main-content {
-    flex: 1;
+.app-main {
+    width: 100%;
     padding: 0;
 }
 

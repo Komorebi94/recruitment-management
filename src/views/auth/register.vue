@@ -8,6 +8,9 @@
                 :rules="rules"
                 label-width="80px"
             >
+                <el-form-item label="用户名" prop="username">
+                    <el-input v-model="form.username" placeholder="请输入用户名" />
+                </el-form-item>
                 <el-form-item label="邮箱" prop="email">
                     <el-input v-model="form.email" placeholder="请输入邮箱" />
                 </el-form-item>
@@ -45,10 +48,12 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
+import { v4 as uuidv4 } from 'uuid';
 import { registerUser } from "@/services/loginAndRegisterService";
 
 const formRef = ref(null);
 const form = ref({
+    username: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -63,6 +68,9 @@ const checkConfirmPassword = (rule, value, callback) => {
     }
 };
 const rules = {
+    username: [
+        { required: true, message: "请输入用户名", trigger: "blur" },
+    ],
     email: [
         { required: true, message: "请输入邮箱", trigger: "blur" },
         {
@@ -90,10 +98,12 @@ const handleRegister = async () => {
     loading.value = true;
 
     const user = {
+        userId: uuidv4(),
         email: form.value.email,
         password: form.value.password,
         confirmPassword: form.value.confirmPassword,
-        role: "user", // 默认是求职者
+        username: form.value.username,
+        role: form.value.email === "admin@gmail.com" ? "admin" : "user", // 默认是求职者
         createdAt: new Date().toISOString(),
     };
 

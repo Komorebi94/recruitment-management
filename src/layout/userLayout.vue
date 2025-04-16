@@ -1,15 +1,5 @@
 <template>
     <el-container class="user-layout">
-        <!-- 顶部导航栏 -->
-        <el-header class="user-header">
-            <div class="logo">招聘系统 · 求职者中心</div>
-            <div class="user-info">
-                <span class="username">{{ userInfo.username }}</span>
-                <el-button type="danger" size="small" @click="logout"
-                    >退出</el-button
-                >
-            </div>
-        </el-header>
 
         <!-- 页面主体 -->
         <el-main class="user-main">
@@ -22,8 +12,8 @@
                 text-color="#333"
                 active-text-color="#409EFF"
             >
-                <el-menu-item index="/user/profile">个人信息</el-menu-item>
-                <el-menu-item index="/user/resume">简历编辑</el-menu-item>
+                <!-- <el-menu-item index="/user/profile">个人信息</el-menu-item> -->
+                <el-menu-item index="/user/resume">个人简历</el-menu-item>
                 <el-menu-item index="/user/applied">投递记录</el-menu-item>
             </el-menu>
 
@@ -38,11 +28,11 @@
 import { useRoute, useRouter } from "vue-router";
 import { ref, onMounted } from "vue";
 import { ElMessage } from "element-plus";
+import { useUserStore } from "@/stores/user";
 
-// 模拟登录信息，实际使用中应从 pinia 或 indexedDB 获取
-const userInfo = ref({
-    username: localStorage.getItem("user") || "用户",
-});
+const userStore = useUserStore();
+
+const userInfo = ref(userStore.getUser());
 
 const route = useRoute();
 const router = useRouter();

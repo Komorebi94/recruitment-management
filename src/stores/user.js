@@ -5,13 +5,12 @@ export const useUserStore = defineStore('user', {
         user: JSON.parse(localStorage.getItem('user')) || null,
     }),
     actions: {
-        login (userData) {
+        setUser (userData) {
             this.user = userData;
             localStorage.setItem('user', JSON.stringify(userData));
         },
-        logout () {
-            this.user = null;
-            localStorage.removeItem('user');
-        },
+        getUser () {
+            return this.user;
+        }
     },
 });

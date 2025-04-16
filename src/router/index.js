@@ -41,6 +41,14 @@ const routes = [
                 component: () =>
                     import("@/views/admin/job-application-list/index.vue"),
             },
+            {
+                path: 'resume-preview',
+                component: () => import('@/views/admin/resume-preview/index.vue')
+            },
+            {
+                path: 'interviews',
+                component: () => import('@/views/admin/interviews/index.vue')
+            },
             { path: "", redirect: "/admin/post-job" },
         ],
     },
@@ -65,6 +73,15 @@ const routes = [
                 redirect: "profile",
             },
         ],
+    },
+    {
+        path: "/job/:id",
+        name: "JobDetail",
+        component: () => import("@/views/common/job-detail.vue"),
+    },
+    {
+        path: "",
+        redirect: "/home",
     },
 ];
 

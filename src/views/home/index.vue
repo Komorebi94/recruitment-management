@@ -22,11 +22,12 @@
                 :key="job.id"
                 class="job-card"
                 shadow="hover"
+                @click="goToJobDetail(job.id)"
             >
                 <h3 class="title">{{ job.title }}</h3>
                 <p class="desc">{{ job.description }}</p>
                 <div class="meta">
-                    <span>发布人：{{ job.creatorEmail }}</span>
+                    <span>发布人：{{ job.creatorEmail || 'admin' }}</span>
                     <span>{{ formatDate(job.createdAt) }}</span>
                 </div>
             </el-card>
@@ -49,11 +50,16 @@
 import { ref } from "vue";
 import { ElMessage } from "element-plus";
 import { Search } from "@element-plus/icons-vue";
+import { useRouter } from "vue-router";
 import { searchJobs } from "@/services/jobService";
+import { useUserStore } from "@/stores/user";
 
+const router = useRouter();
 const jobs = ref([]);
 const total = ref(0);
 const searchKeyword = ref("");
+const userStore = useUserStore();
+const currentUser = userStore.getUser();
 const pageSize = 6;
 const currentPage = ref(1);
 const loading = ref(false);
@@ -70,6 +76,10 @@ const fetchJobs = async () => {
 
         jobs.value = result;
         total.value = allMatches.length;
+        if(jobs.value.length === 0) {
+            ElMessage.warning("请登录管理员账号添加职位");
+            router.push('/login');
+        }
     } catch (err) {
         ElMessage.error("加载职位失败");
     } finally {
@@ -89,6 +99,14 @@ const handleSearch = () => {
 
 const formatDate = (date) => {
     return new Date(date).toLocaleString();
+};
+
+const goToJobDetail = (id) => {
+    if(!currentUser?.email) {
+        router.push('/login');
+        return;
+    }
+    router.push(`/job/${id}`);
 };
 
 fetchJobs();

@@ -6,36 +6,79 @@ let dbInstance = null
 
 // 初始化数据库
 export const initDB = async () => {
-    if (dbInstance) return dbInstance
+    if (dbInstance) return dbInstance;
 
     dbInstance = await openDB(DB_NAME, DB_VERSION, {
         upgrade (db) {
+            // users 表
             if (!db.objectStoreNames.contains('users')) {
-                const store = db.createObjectStore('users', { keyPath: 'email' })
-                store.createIndex('username', 'username', { unique: false })
+                const store = db.createObjectStore('users', { keyPath: 'email' });
+                // 创建唯一索引，用 email 作为索引，因为 email 是主键
+                store.createIndex('email', 'email', { unique: true });
+                // ✅ 插入管理员账号
+                store.transaction.oncomplete = () => {
+                    const userStore = db.transaction("users", "readwrite").objectStore("users");
+                    userStore.add({
+                        userId: "admin",
+                        email: "admin@gmail.com",
+                        password: "psd@admin",
+                        username: "管理员",
+                        role: "admin",
+                        createdAt: new Date().toISOString()
+                    });
+                    userStore.add({
+                        userId: "test_user_001",
+                        email: "test_user_001@gmail.com",
+                        password: "psd@test_user_001",
+                        username: "测试用户1",
+                        role: "user",
+                        createdAt: new Date().toISOString()
+                    });
+                };
             }
 
+            // jobs 表
             if (!db.objectStoreNames.contains('jobs')) {
-                const store = db.createObjectStore('jobs', { keyPath: 'id' })
-                store.createIndex('creatorEmail', 'creatorEmail')
-                store.createIndex('status', 'status')
+                const store = db.createObjectStore('jobs', { keyPath: 'id' });
+                store.createIndex('creatorEmail', 'creatorEmail');
+                store.createIndex('status', 'status');
             }
 
+            // applications 表
             if (!db.objectStoreNames.contains('applications')) {
-                const store = db.createObjectStore('applications', { keyPath: 'id' })
+                const store = db.createObjectStore('applications', { keyPath: 'id' });
+                store.createIndex('jobId', 'jobId');
+                store.createIndex('userId', 'userId');
+                store.createIndex('applicantEmail', 'applicantEmail');
+            }
+
+            // drafts 表
+            if (!db.objectStoreNames.contains('drafts')) {
+                const store = db.createObjectStore('drafts', { keyPath: 'id' });
+                store.createIndex('creatorEmail', 'creatorEmail');
+                store.createIndex('status', 'status');
+            }
+            // dbService upgrade 中
+            if (!db.objectStoreNames.contains('resumes')) {
+                const store = db.createObjectStore('resumes', { keyPath: 'id' })
+                store.createIndex('userId', 'userId', { unique: true }) // 一人一份简历
+            }
+            if (!db.objectStoreNames.contains('favorites')) {
+                const store = db.createObjectStore('favorites', { keyPath: 'id' }) // id 推荐使用 jobId_email 拼接
+                store.createIndex('jobId', 'jobId')
+                store.createIndex('email', 'email')
+            }
+            if (!db.objectStoreNames.contains('interviews')) {
+                const store = db.createObjectStore('interviews', { keyPath: 'id' })
                 store.createIndex('jobId', 'jobId')
                 store.createIndex('applicantEmail', 'applicantEmail')
             }
-
-            if (!db.objectStoreNames.contains('drafts')) {
-                const store = db.createObjectStore('drafts', { keyPath: 'id' })
-                store.createIndex('creatorEmail', 'creatorEmail')
-            }
         }
-    })
+    });
 
-    return dbInstance
+    return dbInstance;
 }
+
 
 // 获取数据库实例
 export const getDB = async () => {
